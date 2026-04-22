@@ -106,6 +106,8 @@ export default function App() {
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
 
+  const [missMessage, setMissMessage] = useState<{ x: number, text: string, id: number } | null>(null);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const levelQueueRef = useRef<LevelData[]>([]);
@@ -115,6 +117,7 @@ export default function App() {
   const starsRef = useRef<Star[]>([]);
   const requestRef = useRef<number>(null);
   const frameCountRef = useRef(0);
+  const spawnCounterRef = useRef(0);
   const gameSettingsRef = useRef({
     baseSpeed: 1.2,
     spawnRate: 100,
@@ -262,7 +265,12 @@ export default function App() {
     }
   };
 
-  const loseLife = useCallback(() => {
+  const showMissFeedback = (x: number, text: string) => {
+    setMissMessage({ x, text, id: Date.now() });
+    setTimeout(() => setMissMessage(null), 1000);
+  };
+
+  const loseLife = useCallback((isMissedWord: boolean = false, x?: number) => {
     setCombo(0);
     setLives(prev => {
       const next = prev - 1;
@@ -274,6 +282,11 @@ export default function App() {
     });
     setIsFlashing(true);
     setIsShaking(true);
+    if (isMissedWord && x !== undefined) {
+      showMissFeedback(x, "WORD MISSED!");
+    } else if (!isMissedWord && x !== undefined) {
+      showMissFeedback(x, "WRONG WORD!");
+    }
     setTimeout(() => {
       setIsFlashing(false);
       setIsShaking(false);
@@ -302,7 +315,7 @@ export default function App() {
     } else {
       setMissedHits(prev => prev + 1);
       createExplosion(meteor.x, meteor.y, false);
-      loseLife();
+      loseLife(false, meteor.x);
     }
   }, [speedLevel, handleLevelUp, loseLife, combo, maxCombo]);
 
@@ -322,8 +335,22 @@ export default function App() {
 
     // Spawn Meteor
     if (frameCountRef.current % gameSettingsRef.current.spawnRate === 0 && currentLevelRef.current) {
-      const isSynonym = Math.random() > 0.65;
-      const pool = isSynonym ? currentLevelRef.current.synonyms : currentLevelRef.current.distractors;
+      spawnCounterRef.current++;
+      
+      // Every 3rd word is guaranteed to be a synonym if possible
+      let isSynonym = Math.random() > 0.5;
+      if (spawnCounterRef.current >= 3) {
+        isSynonym = true;
+        spawnCounterRef.current = 0;
+      }
+
+      const pool = isSynonym 
+        ? (currentLevelRef.current.synonyms.length > 0 ? currentLevelRef.current.synonyms : currentLevelRef.current.distractors)
+        : (currentLevelRef.current.distractors.length > 0 ? currentLevelRef.current.distractors : currentLevelRef.current.synonyms);
+      
+      // Re-evaluate isSynonym in case we had to switch pools
+      const finalIsSynonym = isSynonym ? (currentLevelRef.current.synonyms.length > 0) : !(currentLevelRef.current.distractors.length > 0);
+
       if (pool.length > 0) {
         const word = pool[Math.floor(Math.random() * pool.length)];
         const ctx = canvasRef.current?.getContext('2d');
@@ -337,7 +364,7 @@ export default function App() {
           
           meteorsRef.current.push({
             word,
-            isSynonym,
+            isSynonym: finalIsSynonym,
             active: true,
             x,
             y: -50,
@@ -345,7 +372,7 @@ export default function App() {
             h,
             dy: gameSettingsRef.current.baseSpeed + (Math.random() * 0.5),
             color: 'rgba(15, 23, 42, 0.95)',
-            borderColor: '#38bdf8'
+            borderColor: finalIsSynonym ? '#38bdf8' : '#64748b' // Subtle color diff for visual assist
           });
         }
       }
@@ -356,7 +383,7 @@ export default function App() {
       m.y += m.dy;
       if (canvasRef.current && m.y - m.h/2 > canvasRef.current.height) {
         m.active = false;
-        if (m.isSynonym) loseLife();
+        if (m.isSynonym) loseLife(true, m.x);
       }
     });
     meteorsRef.current = meteorsRef.current.filter(m => m.active);
@@ -577,6 +604,22 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="absolute top-0 left-0 right-0 p-3 sm:p-6 z-30 pointer-events-none"
             >
+              {/* Floating Miss Message */}
+              <AnimatePresence>
+                {missMessage && (
+                  <motion.div
+                    key={missMessage.id}
+                    initial={{ opacity: 0, y: 0 }}
+                    animate={{ opacity: 1, y: -20 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute top-[60vh] left-0 right-0 text-center"
+                  >
+                    <span className="bg-red-600 text-white font-black text-[10px] sm:text-xs px-3 py-1 rounded-full shadow-lg">
+                      {missMessage.text}
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <div className="flex justify-between items-center mb-2 sm:mb-4">
                 <div className="flex gap-2 sm:gap-4">
                   <div className="bg-slate-950/80 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-blue-500/30 flex flex-col">
