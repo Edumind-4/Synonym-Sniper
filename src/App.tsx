@@ -328,9 +328,11 @@ export default function App() {
         const word = pool[Math.floor(Math.random() * pool.length)];
         const ctx = canvasRef.current?.getContext('2d');
         if (ctx) {
-          ctx.font = 'bold 16px "Inter", sans-serif';
-          const w = Math.max(ctx.measureText(word).width + 40, 100);
-          const h = 44;
+          const isMobile = window.innerWidth < 640;
+          ctx.font = `bold ${isMobile ? '14px' : '16px'} "Inter", sans-serif`;
+          const textW = ctx.measureText(word).width;
+          const w = Math.min(Math.max(textW + 30, 80), (canvasRef.current?.width || 800) * 0.8);
+          const h = isMobile ? 38 : 44;
           const x = Math.random() * (canvasRef.current!.width - w) + w/2;
           
           meteorsRef.current.push({
@@ -414,7 +416,8 @@ export default function App() {
         ctx.stroke();
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px "Inter", sans-serif';
+        const isMobile = window.innerWidth < 640;
+        ctx.font = `bold ${isMobile ? '14px' : '16px'} "Inter", sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(m.word, m.x, m.y + 1);
@@ -559,7 +562,7 @@ export default function App() {
       <div 
         ref={containerRef}
         id="game-container"
-        className={`relative w-full max-w-xl aspect-[4/5] bg-slate-900 rounded-3xl overflow-hidden border-2 border-slate-800 shadow-2xl shadow-blue-500/10 ${isShaking ? 'animate-[shake_0.4s_ease-in-out_infinite]' : ''}`}
+        className={`relative w-full h-full max-h-[850px] aspect-[9/16] sm:aspect-[4/5] bg-slate-900 rounded-none sm:rounded-3xl overflow-hidden border-0 sm:border-2 border-slate-800 shadow-2xl shadow-blue-500/10 ${isShaking ? 'animate-[shake_0.4s_ease-in-out_infinite]' : ''}`}
         style={{ touchAction: 'none' }}
       >
         {/* Flash Layer */}
@@ -572,50 +575,50 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute top-0 left-0 right-0 p-6 z-30 pointer-events-none"
+              className="absolute top-0 left-0 right-0 p-3 sm:p-6 z-30 pointer-events-none"
             >
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex gap-4">
-                  <div className="bg-slate-950/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-blue-500/30 flex flex-col">
-                    <span className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Score</span>
-                    <span className="text-2xl font-black text-white font-mono">{score}</span>
+              <div className="flex justify-between items-center mb-2 sm:mb-4">
+                <div className="flex gap-2 sm:gap-4">
+                  <div className="bg-slate-950/80 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-blue-500/30 flex flex-col">
+                    <span className="text-[8px] sm:text-[10px] text-blue-400 font-bold uppercase tracking-widest">Score</span>
+                    <span className="text-xl sm:text-2xl font-black text-white font-mono">{score}</span>
                   </div>
                   {combo > 1 && (
                     <motion.div 
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
-                      className="bg-pink-600 px-4 py-2 rounded-2xl border border-pink-400 flex flex-col justify-center shadow-lg shadow-pink-500/20"
+                      className="bg-pink-600 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-pink-400 flex flex-col justify-center shadow-lg shadow-pink-500/20"
                     >
-                      <span className="text-[10px] text-pink-100 font-bold uppercase">Combo</span>
-                      <span className="text-xl font-black text-white font-mono">x{combo}</span>
+                      <span className="text-[8px] sm:text-[10px] text-pink-100 font-bold uppercase">Combo</span>
+                      <span className="text-lg sm:text-xl font-black text-white font-mono">x{combo}</span>
                     </motion.div>
                   )}
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-0.5 sm:gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <motion.div
                       key={i}
                       initial={false}
                       animate={{ scale: i < lives ? 1 : 0.8, opacity: i < lives ? 1 : 0.3 }}
                     >
-                      <Heart key={i} className={`w-6 h-6 ${i < lives ? 'fill-red-500 text-red-500' : 'text-slate-700'}`} />
+                      <Heart key={i} className={`w-5 h-5 sm:w-6 sm:h-6 ${i < lives ? 'fill-red-500 text-red-500' : 'text-slate-700'}`} />
                     </motion.div>
                   ))}
                 </div>
               </div>
 
-              <div className="bg-slate-950/90 backdrop-blur-lg border-2 border-slate-800 p-4 rounded-3xl text-center shadow-xl">
-                <div className="flex justify-between items-center mb-1 px-2">
-                  <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Target Word</span>
-                  <span className="text-[10px] uppercase tracking-widest text-blue-500 font-bold">LEVEL {speedLevel}</span>
+              <div className="bg-slate-950/90 backdrop-blur-lg border-2 border-slate-800 p-3 sm:p-4 rounded-2xl sm:rounded-3xl text-center shadow-xl">
+                <div className="flex justify-between items-center mb-1 px-1 sm:px-2">
+                  <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-slate-500 font-bold">Target Word</span>
+                  <span className="text-[8px] sm:text-[10px] uppercase tracking-widest text-blue-500 font-bold">LEVEL {speedLevel}</span>
                 </div>
-                <h2 className="text-3xl font-black text-white tracking-widest font-mono truncate px-2">{targetWord || 'LOADING...'}</h2>
-                <div className="mt-3 px-2">
-                   <div className="flex justify-between text-[9px] font-bold text-slate-500 uppercase mb-1">
+                <h2 className="text-xl sm:text-3xl font-black text-white tracking-widest font-mono truncate px-1 sm:px-2">{targetWord || 'LOADING...'}</h2>
+                <div className="mt-2 sm:mt-3 px-1 sm:px-2">
+                   <div className="flex justify-between text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase mb-1">
                      <span>Words Found</span>
                      <span>{synonymsHit}/5 Done</span>
                    </div>
-                  <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                  <div className="w-full bg-slate-800 h-1 sm:h-1.5 rounded-full overflow-hidden">
                     <motion.div 
                       className="bg-gradient-to-r from-blue-600 to-blue-400 h-full shadow-[0_0_15px_#3b82f6]"
                       initial={{ width: 0 }}
@@ -643,7 +646,7 @@ export default function App() {
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-slate-950 z-40 flex flex-col items-center justify-center p-8 text-center"
             >
-              <div className="absolute top-0 left-0 w-full p-8 flex justify-between items-start opacity-30 pointer-events-none text-blue-400 font-mono text-[10px]">
+              <div className="absolute top-0 left-0 w-full p-4 sm:p-8 flex justify-between items-start opacity-30 pointer-events-none text-blue-400 font-mono text-[8px] sm:text-[10px]">
                  <div className="text-left">
                    READY TO PLAY<br/>
                    WORDS LOADED<br/>
@@ -658,9 +661,9 @@ export default function App() {
               <motion.div 
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="w-24 h-24 rounded-3xl bg-blue-600/10 border border-blue-500/50 flex items-center justify-center mb-8 relative shadow-[0_0_50px_rgba(59,130,246,0.1)]"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-blue-600/10 border border-blue-500/50 flex items-center justify-center mb-6 sm:mb-8 relative shadow-[0_0_50px_rgba(59,130,246,0.1)]"
               >
-                <Target className="w-12 h-12 text-blue-500" />
+                <Target className="w-10 h-10 sm:w-12 sm:h-12 text-blue-500" />
                 <motion.div 
                   animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -668,16 +671,16 @@ export default function App() {
                 />
               </motion.div>
 
-              <h1 className="text-4xl font-black text-white mb-2 font-mono tracking-tighter">
+              <h1 className="text-3xl sm:text-4xl font-black text-white mb-2 font-mono tracking-tighter">
                 SYNONYM <span className="text-blue-500">SNIPER</span>
               </h1>
-              <p className="text-slate-400 text-sm font-medium mb-8 max-w-xs leading-relaxed">
+              <p className="text-slate-400 text-xs sm:text-sm font-medium mb-6 sm:mb-8 max-w-xs leading-relaxed px-4">
                 Catch words with the same meaning! Tap the correct words and avoid the wrong ones.
               </p>
 
               {/* Difficulty Selection */}
-              <div className="w-full max-w-xs mb-8">
-                <p className="text-[10px] text-slate-500 font-bold uppercase mb-3 tracking-widest">Select Play Level</p>
+              <div className="w-full max-w-[280px] sm:max-w-xs mb-6 sm:mb-8">
+                <p className="text-[8px] sm:text-[10px] text-slate-500 font-bold uppercase mb-3 tracking-widest">Select Play Level</p>
                 <div className="grid grid-cols-3 gap-2 bg-slate-900/50 p-1 rounded-2xl border border-slate-800">
                   {(['EASY', 'MEDIUM', 'ADVANCED'] as Difficulty[]).map((d) => (
                     <button
@@ -687,7 +690,7 @@ export default function App() {
                         levelQueueRef.current = [];
                         populateQueue(d);
                       }}
-                      className={`px-2 py-3 rounded-xl text-[10px] font-black transition-all ${
+                      className={`px-1 py-2 sm:px-2 sm:py-3 rounded-xl text-[8px] sm:text-[10px] font-black transition-all ${
                         difficulty === d 
                           ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20 translate-y-[-2px]' 
                           : 'text-slate-600 hover:text-slate-400 hover:bg-slate-800/50'
@@ -702,9 +705,9 @@ export default function App() {
               <button 
                 onClick={startGame}
                 disabled={isFetching && levelQueueRef.current.length === 0}
-                className="group relative w-full max-w-xs bg-white text-slate-950 font-black text-xl py-5 rounded-2xl transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 shadow-xl shadow-white/5"
+                className="group relative w-full max-w-[280px] sm:max-w-xs bg-white text-slate-950 font-black text-lg py-4 sm:py-5 rounded-2xl transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 shadow-xl shadow-white/5"
               >
-                <Play className="w-6 h-6 fill-current" />
+                <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
                 <span>PLAY NOW</span>
               </button>
 
@@ -750,38 +753,38 @@ export default function App() {
                   <h2 className="text-4xl font-black text-white mb-8 font-mono tracking-tighter">GAME <span className="text-blue-500">OVER</span></h2>
                 </motion.div>
 
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  <div className="bg-slate-900 border border-slate-800 p-5 rounded-3xl text-left">
-                    <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Your Score</p>
-                    <p className="text-3xl font-black text-white font-mono">{score}</p>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8 px-2">
+                  <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl sm:rounded-3xl text-left">
+                    <p className="text-[8px] sm:text-[10px] text-slate-500 font-bold uppercase mb-1">Your Score</p>
+                    <p className="text-2xl sm:text-3xl font-black text-white font-mono">{score}</p>
                   </div>
-                  <div className="bg-slate-900 border border-slate-800 p-5 rounded-3xl text-left">
-                    <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Best Combo</p>
-                    <p className="text-3xl font-black text-pink-500 font-mono">x{maxCombo}</p>
+                  <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl sm:rounded-3xl text-left">
+                    <p className="text-[8px] sm:text-[10px] text-slate-500 font-bold uppercase mb-1">Best Combo</p>
+                    <p className="text-2xl sm:text-3xl font-black text-pink-500 font-mono">x{maxCombo}</p>
                   </div>
                 </div>
 
-                <div className="mb-8">
-                  <p className="text-[10px] text-slate-600 font-bold uppercase mb-4 tracking-widest">Your Badges</p>
+                <div className="mb-6 sm:mb-8 px-2">
+                  <p className="text-[8px] sm:text-[10px] text-slate-600 font-bold uppercase mb-3 sm:mb-4 tracking-widest">Your Badges</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <Badge icon={<Medal />} label="New Player" desc="50 total hits" active={totalWords >= 50} />
-                    <Badge icon={<Star />} label="Big Hitter" desc="200 total hits" active={totalWords >= 200} />
-                    <Badge icon={<Crown />} label="Word Master" desc="500 total hits" active={totalWords >= 500} />
-                    <Badge icon={<Bolt />} label="Super Fast" desc="Reach level 15" active={speedLevel >= 15} />
+                    <Badge icon={<Medal />} label="New Player" desc="50 hits" active={totalWords >= 50} />
+                    <Badge icon={<Star />} label="Big Hitter" desc="200 hits" active={totalWords >= 200} />
+                    <Badge icon={<Crown />} label="Word Master" desc="500 hits" active={totalWords >= 500} />
+                    <Badge icon={<Bolt />} label="Super Fast" desc="Lvl 15 reached" active={speedLevel >= 15} />
                   </div>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex gap-2 sm:gap-3 px-2">
                   <button 
                     onClick={startGame}
-                    className="flex-1 bg-white text-slate-950 font-black text-lg py-5 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3 shadow-xl shadow-white/5"
+                    className="flex-1 bg-white text-slate-950 font-black text-base sm:text-lg py-4 sm:py-5 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 sm:gap-3 shadow-xl shadow-white/5"
                   >
                     <RotateCcw className="w-5 h-5" />
                     RETRY
                   </button>
                   <button 
                     onClick={() => setGameState('START')}
-                    className="px-6 border-2 border-slate-800 text-slate-400 font-black text-sm rounded-2xl hover:bg-slate-800 transition-colors"
+                    className="px-4 sm:px-6 border-2 border-slate-800 text-slate-400 font-black text-xs rounded-2xl hover:bg-slate-800 transition-colors"
                   >
                     HOME
                   </button>
@@ -813,12 +816,12 @@ export default function App() {
 
 function Badge({ icon, label, desc, active }: { icon: React.ReactNode, label: string, desc: string, active: boolean }) {
   return (
-    <div className={`p-4 rounded-2xl border text-left transition-all ${active ? 'bg-blue-600/5 border-blue-500/50 text-white' : 'bg-slate-900 border-slate-800 text-slate-700'}`}>
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${active ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
-        {icon}
+    <div className={`p-3 sm:p-4 rounded-2xl border text-left transition-all ${active ? 'bg-blue-600/5 border-blue-500/50 text-white' : 'bg-slate-900 border-slate-800 text-slate-700'}`}>
+      <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center mb-1.5 sm:mb-2 ${active ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
+        {React.cloneElement(icon as React.ReactElement, { className: 'w-3.5 h-3.5 sm:w-5 sm:h-5' })}
       </div>
-      <p className="text-[10px] font-black uppercase leading-tight truncate">{label}</p>
-      <p className={`text-[8px] font-medium leading-tight ${active ? 'text-blue-300' : 'text-slate-600'}`}>{desc}</p>
+      <p className="text-[8px] sm:text-[10px] font-black uppercase leading-tight truncate">{label}</p>
+      <p className={`text-[7px] sm:text-[8px] font-medium leading-tight ${active ? 'text-blue-300' : 'text-slate-600'}`}>{desc}</p>
     </div>
   );
 }
