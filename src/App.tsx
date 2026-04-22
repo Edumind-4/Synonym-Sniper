@@ -184,7 +184,7 @@ export default function App() {
       Return JSON format.`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-lite",
+        model: "gemini-3.1-flash-lite-preview",
         contents: prompt,
         config: {
           responseMimeType: "application/json",
@@ -211,14 +211,18 @@ export default function App() {
         throw new Error("Invalid AI response structure");
       }
     } catch (error) {
-      console.warn("AI Generation failed, using static fallback", error);
-      // Fallback logic
+      console.warn("AI Generation failed, using pool-based fallback", error);
+      // Fallback: Pick a target and some random words as placeholders
       const pool = WORD_POOLS[currentDifficulty];
       const target = pool[Math.floor(Math.random() * pool.length)];
+      
+      // Select random synonyms from the same difficulty pool as a safety net
+      const randomWords = [...pool].sort(() => 0.5 - Math.random());
+      
       levelQueueRef.current.push({
         target,
-        synonyms: ["VALID", "CORRECT", "TRUE", "RIGHT"],
-        distractors: ["FALSE", "WRONG", "ERROR", "BAD"]
+        synonyms: randomWords.slice(0, 5),
+        distractors: randomWords.slice(5, 15)
       });
     } finally {
       setIsFetching(false);
